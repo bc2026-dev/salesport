@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="営業は環境の組み合わせで何通りにもなる。3つの質問から、自分に合う営業スタイルと求人の選択肢を確認できます。">
+  <meta name="description" content="営業は環境の組み合わせで何通りにもなる。6つの質問から、自分に合う営業スタイルと求人の選択肢を確認できます。">
   <meta property="og:title" content="SalesPort｜営業キャリアの選択肢">
   <meta property="og:description" content="営業キャリアに、新しい行き先を。">
   <meta property="og:image" content="og.png">
@@ -45,8 +45,7 @@
         <p class="result-label">ご回答ありがとうございました！⚓</p>
         <h2>あなたの希望の環境が、<br><strong>明確になりましたね。</strong></h2>
         <div class="answer-summary" id="answerSummary"></div>
-        <!-- 下記のhrefをSalesPortのLINE友だち追加URLへ変更してください -->
-        <a class="line-button" id="lineButton" href="#line-url"><span>LINEで</span> 募集中の会社を見てみる <i>›</i></a>
+        <a class="line-button" id="lineButton" href="https://lin.ee/Qye5J9U"><span>LINEで</span> 募集中の会社を見てみる <i>›</i></a>
         <small>無料・1分アンケート／転職時期が未定でも大丈夫です</small>
         <button class="restart-button" id="restartButton" type="button">最初からやり直す</button>
       </div>
@@ -61,6 +60,15 @@
 </main>
 
 <script>
+  /* ============================================================
+   * SalesPort 設定値
+   * META_PIXEL_ID は最終検証時にデータセットIDを入力します。
+   * 空欄の間はMetaピクセルを読み込まず、イベントも送信しません。
+   * ============================================================ */
+  const GAS_ENDPOINT = "https://script.google.com/macros/s/AKfycbyOtZPu-LcgJAFOFzhRpmr_nmJ_N4IVHHiuMNEZxaNyLp4YtCqrtO8uJMItUbDTnfkLJg/exec";
+  const LINE_FRIEND_URL = "https://lin.ee/Qye5J9U";
+  const META_PIXEL_ID = "";
+
   const questions = [
     {title:"今の営業で、一番変えたいことは？",caption:"直感に近いものを選んでください",options:["年収・評価","営業スタイル","働き方","まだ分からない"]},
     {title:"どんな顧客との関わり方が理想ですか？",caption:"一番近いものを選んでください",options:["多くのお客様と接点を持つ","一社一社と深く向き合う","両方をバランスよく","相談して考えたい"]},
@@ -69,64 +77,213 @@
     {title:"希望する働き方に近いものは？",caption:"現時点の希望で大丈夫です",options:["出社して働きたい","リモートも取り入れたい","時間の柔軟性を重視","特に決まっていない"]},
     {title:"次のキャリアで優先したいことは？",caption:"一番近いものを選んでください",options:["収入を上げたい","成長できる環境","無理なく長く働きたい","自分に合う選択肢を知りたい"]}
   ];
-  let step=0;
-  let answers=[];
-  const questionArea=document.getElementById("questionArea");
-  const questionBlock=document.getElementById("questionBlock");
-  const resultBlock=document.getElementById("resultBlock");
-  const title=document.getElementById("questionTitle");
-  const caption=document.getElementById("questionCaption");
-  const kicker=document.getElementById("questionKicker");
-  const grid=document.getElementById("optionGrid");
-  const stepNumber=document.getElementById("stepNumber");
-  const progressBar=document.getElementById("progressBar");
-  const backButton=document.getElementById("backButton");
-  const answerSummary=document.getElementById("answerSummary");
+
+  let step = 0;
+  let answers = [];
+  let surveyStartedAt = "";
+  let surveyCompletedAt = "";
+  let diagnosisEventSent = false;
+  let ctaSending = false;
+
+  const landingTime = new Date().toISOString();
+  const query = new URLSearchParams(location.search);
+  const clickId = getOrCreateClickId();
+
+  const questionArea = document.getElementById("questionArea");
+  const questionBlock = document.getElementById("questionBlock");
+  const resultBlock = document.getElementById("resultBlock");
+  const title = document.getElementById("questionTitle");
+  const caption = document.getElementById("questionCaption");
+  const kicker = document.getElementById("questionKicker");
+  const grid = document.getElementById("optionGrid");
+  const stepNumber = document.getElementById("stepNumber");
+  const progressBar = document.getElementById("progressBar");
+  const backButton = document.getElementById("backButton");
+  const answerSummary = document.getElementById("answerSummary");
+  const lineButton = document.getElementById("lineButton");
+
+  lineButton.href = LINE_FRIEND_URL;
+
+  initializeMetaPixel();
+
+  function initializeMetaPixel(){
+    const pixelId = String(META_PIXEL_ID || "").trim();
+    if(!pixelId || pixelId.toLowerCase() === "null") return;
+
+    !function(f,b,e,v,n,t,s){
+      if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+      n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+      if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+      n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;
+      s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)
+    }(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+
+    fbq('init', pixelId);
+    fbq('track', 'PageView');
+  }
+
+  function trackMetaCustom(eventName, parameters){
+    if(typeof window.fbq !== "function") return;
+    window.fbq('trackCustom', eventName, parameters || {});
+  }
+
+  function getOrCreateClickId(){
+    const key = "salesport_click_id";
+    try{
+      const existing = sessionStorage.getItem(key);
+      if(existing) return existing;
+      const generated = createUniqueId();
+      sessionStorage.setItem(key, generated);
+      return generated;
+    }catch(error){
+      return createUniqueId();
+    }
+  }
+
+  function createUniqueId(){
+    if(window.crypto && typeof window.crypto.randomUUID === "function"){
+      return window.crypto.randomUUID();
+    }
+    return "sp_" + Date.now() + "_" + Math.random().toString(36).slice(2,12);
+  }
+
+  function getCookie(name){
+    const prefix = name + "=";
+    const parts = document.cookie ? document.cookie.split(";") : [];
+    for(const part of parts){
+      const value = part.trim();
+      if(value.indexOf(prefix) === 0){
+        return decodeURIComponent(value.slice(prefix.length));
+      }
+    }
+    return "";
+  }
+
+  function buildFbc(fbclid){
+    if(!fbclid) return "";
+    return "fb.1." + Math.floor(new Date(landingTime).getTime()) + "." + fbclid;
+  }
 
   function renderQuestion(){
-    const q=questions[step];
-    kicker.textContent="QUESTION "+(step+1);
-    title.textContent=q.title;
-    caption.textContent=q.caption;
-    stepNumber.textContent=(step+1)+" / "+questions.length;
-    progressBar.style.width=((step+1)/questions.length*100)+"%";
-    backButton.style.display=step>0?"block":"none";
-    grid.innerHTML="";
-    q.options.forEach(option=>{
-      const button=document.createElement("button");
-      button.type="button";
-      button.innerHTML="<span>"+option+"</span><i>›</i>";
-      button.addEventListener("click",()=>selectAnswer(option));
+    const q = questions[step];
+    kicker.textContent = "QUESTION " + (step + 1);
+    title.textContent = q.title;
+    caption.textContent = q.caption;
+    stepNumber.textContent = (step + 1) + " / " + questions.length;
+    progressBar.style.width = ((step + 1) / questions.length * 100) + "%";
+    backButton.style.display = step > 0 ? "block" : "none";
+    grid.innerHTML = "";
+    q.options.forEach(option => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.innerHTML = "<span>" + option + "</span><i>›</i>";
+      button.addEventListener("click", () => selectAnswer(option));
       grid.appendChild(button);
     });
-    questionBlock.style.animation="none";
-    requestAnimationFrame(()=>{questionBlock.style.animation="appear .28s ease both"});
+    questionBlock.style.animation = "none";
+    requestAnimationFrame(() => { questionBlock.style.animation = "appear .28s ease both"; });
   }
+
   function selectAnswer(answer){
-    answers[step]=answer;
+    if(!surveyStartedAt) surveyStartedAt = new Date().toISOString();
+    answers[step] = answer;
     step++;
-    if(step<questions.length){renderQuestion()}else{showResult()}
+    if(step < questions.length){
+      renderQuestion();
+    }else{
+      showResult();
+    }
   }
+
   function showResult(){
-    questionArea.style.display="none";
-    resultBlock.style.display="block";
-    answerSummary.innerHTML="";
-    answers.forEach(answer=>{
-      const span=document.createElement("span");
-      span.textContent=answer;
+    surveyCompletedAt = new Date().toISOString();
+    questionArea.style.display = "none";
+    resultBlock.style.display = "block";
+    answerSummary.innerHTML = "";
+    answers.forEach(answer => {
+      const span = document.createElement("span");
+      span.textContent = answer;
       answerSummary.appendChild(span);
     });
+
+    if(!diagnosisEventSent){
+      diagnosisEventSent = true;
+      trackMetaCustom("SalesPortDiagnosisComplete", {question_count: questions.length});
+    }
   }
-  backButton.addEventListener("click",()=>{if(step>0){step--;renderQuestion()}});
-  document.getElementById("restartButton").addEventListener("click",()=>{
-    step=0;answers=[];resultBlock.style.display="none";questionArea.style.display="block";renderQuestion();
-  });
-  document.getElementById("lineButton").addEventListener("click",event=>{
-    if(event.currentTarget.getAttribute("href")==="#line-url"){
-      event.preventDefault();
-      alert("SalesPortのLINE友だち追加URLを設定してください。");
+
+  function buildCtaPayload(){
+    const fbclid = query.get("fbclid") || "";
+    const answerObject = {};
+    answers.forEach((answer,index) => { answerObject["q" + (index + 1)] = answer; });
+
+    return {
+      type: "cta_touch",
+      clickId: clickId,
+      fbclid: fbclid,
+      fbc: getCookie("_fbc") || buildFbc(fbclid),
+      fbp: getCookie("_fbp"),
+      ctaLocation: "diagnosis_result_cta",
+      landingTime: landingTime,
+      ctaTime: new Date().toISOString(),
+      clientUserAgent: navigator.userAgent,
+      utmCampaign: query.get("utm_campaign") || "",
+      utmContent: query.get("utm_content") || "",
+      utmTerm: query.get("utm_term") || "",
+      campaignId: query.get("campaign_id") || "",
+      adsetId: query.get("adset_id") || "",
+      adId: query.get("ad_id") || "",
+      placement: query.get("placement") || "",
+      surveyStartedAt: surveyStartedAt,
+      surveyCompletedAt: surveyCompletedAt,
+      answers: answerObject
+    };
+  }
+
+  function sendCtaTouch(payload){
+    return fetch(GAS_ENDPOINT, {
+      method: "POST",
+      mode: "no-cors",
+      keepalive: true,
+      headers: {"Content-Type":"text/plain;charset=UTF-8"},
+      body: JSON.stringify(payload)
+    }).catch(error => {
+      console.error("SalesPort CTA save failed", error);
+    });
+  }
+
+  backButton.addEventListener("click", () => {
+    if(step > 0){
+      step--;
+      renderQuestion();
     }
   });
+
+  document.getElementById("restartButton").addEventListener("click", () => {
+    step = 0;
+    answers = [];
+    surveyStartedAt = "";
+    surveyCompletedAt = "";
+    diagnosisEventSent = false;
+    resultBlock.style.display = "none";
+    questionArea.style.display = "block";
+    renderQuestion();
+  });
+
+  lineButton.addEventListener("click", event => {
+    event.preventDefault();
+    if(ctaSending) return;
+    ctaSending = true;
+
+    trackMetaCustom("SalesPortLineCtaClick", {cta_location:"diagnosis_result_cta"});
+    sendCtaTouch(buildCtaPayload());
+
+    /* keepalive送信を開始してからLINEへ遷移する。 */
+    window.setTimeout(() => {
+      window.location.href = LINE_FRIEND_URL;
+    }, 180);
+  });
+
   renderQuestion();
 </script>
 </body>
