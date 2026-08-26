@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="営業は環境の組み合わせで何通りにもなる。3つの質問から、自分に合う営業スタイルと求人の選択肢を確認できます。">
+  <meta property="og:title" content="SalesPort｜営業キャリアの選択肢">
+  <meta property="og:description" content="営業キャリアに、新しい行き先を。">
+  <meta property="og:image" content="og.png">
+  <title>SalesPort｜営業キャリアの選択肢</title>
+  <style>
+    :root{--navy:#102c49;--blue:#147dba;--cyan:#35bfd0;--ink:#18324b}
+    *{box-sizing:border-box}html{background:#eaf1f5;scroll-behavior:smooth}body{margin:0;color:var(--ink);background:#fff;font-family:"Noto Sans JP","Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif}button,a{font:inherit}button{color:inherit}.page{width:min(100%,480px);min-height:100vh;margin:0 auto;overflow:hidden;background:#fff;box-shadow:0 0 32px rgba(17,48,74,.1)}
+    .hero{position:relative;width:100%;line-height:0}.hero img{display:block;width:100%;height:auto}
+    .check-area{position:relative;z-index:2;margin-top:-24px;padding:0 14px 46px}.check-card{min-height:424px;overflow:hidden;border:1px solid rgba(20,125,186,.12);border-radius:25px;background:rgba(255,255,255,.98);box-shadow:0 18px 40px rgba(19,67,98,.18)}.check-head{padding:19px 22px 0}.step-line{display:flex;align-items:center;justify-content:space-between;color:#608299;font-size:11px;font-weight:800}.step-line span{color:#16819b}.step-line b{letter-spacing:.08em}.progress{height:5px;margin-top:10px;overflow:hidden;border-radius:20px;background:#e6f0f4}.progress span{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--cyan),var(--blue));transition:width .3s ease}
+    .question-block{padding:25px 22px 23px;animation:appear .28s ease both}@keyframes appear{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}.question-kicker,.result-label{margin:0 0 8px;color:#1b94b0;font-size:10px;font-weight:900;letter-spacing:.15em}.question-block h2{margin:0;color:var(--navy);font-size:21px;line-height:1.55;font-weight:900}.question-caption{margin:6px 0 17px;color:#718794;font-size:12px}.option-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.option-grid button{display:flex;align-items:center;justify-content:space-between;min-height:67px;padding:10px 10px 10px 13px;border:1.5px solid #d7e6ec;border-radius:13px;background:#fff;text-align:left;cursor:pointer;transition:.18s ease}.option-grid button:hover,.option-grid button:focus-visible{border-color:var(--cyan);background:#f1fbfd;transform:translateY(-1px);outline:none}.option-grid button span{font-size:12px;font-weight:750;line-height:1.45}.option-grid button i{display:grid;flex:0 0 24px;width:24px;height:24px;place-items:center;border-radius:50%;background:#edf8fb;color:#1189a5;font-size:21px;font-style:normal;line-height:1}.back-button,.restart-button{display:block;margin:15px auto 0;border:0;background:transparent;color:#6f8592;font-size:11px;text-decoration:underline;cursor:pointer}
+    .result-block{display:none;padding:34px 21px 26px;text-align:center;animation:appear .35s ease both}.result-block h2{margin:0;color:var(--navy);font-size:23px;line-height:1.55;font-weight:750}.result-block h2 strong{color:#087f9e;font-weight:900}.result-block>p:not(.result-label){margin:13px 0 0;color:#537081;font-size:12px;line-height:1.85}.answer-summary{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin:19px 0 21px}.answer-summary span{padding:6px 9px;border-radius:999px;background:#edf8fb;color:#167b96;font-size:10px;font-weight:800}.line-button{display:flex;align-items:center;justify-content:center;gap:6px;min-height:61px;padding:12px 18px;border-radius:15px;background:linear-gradient(135deg,#13b955,#05a846);color:#fff;font-size:15px;font-weight:900;text-decoration:none;box-shadow:0 10px 22px rgba(7,168,70,.24)}.line-button span{padding:3px 5px;border-radius:4px;background:#fff;color:#08a748;font-size:11px}.line-button i{margin-left:2px;font-size:25px;font-style:normal}.result-block small{display:block;margin-top:10px;color:#6f8592;font-size:9px}
+    footer{padding:35px 22px 31px;background:#fff;text-align:center}footer img{width:74px;height:52px;object-fit:cover;mix-blend-mode:multiply}footer p{margin:8px 0 15px;color:#536b79;font-size:11px;font-weight:700}footer nav{display:flex;justify-content:center;gap:13px}footer a{color:#71848f;font-size:9px}footer small{display:block;margin-top:18px;color:#9aaab3;font-size:8px}
+    @media(max-width:350px){.question-block{padding-inline:17px}.option-grid button span{font-size:11px}}
+  </style>
+</head>
+<body>
+<main class="page">
+  <section class="hero" aria-label="営業キャリアに、新しい行き先を。">
+    <img src="salesport-fv.png" alt="営業キャリアに、新しい行き先を。">
+  </section>
+
+  <section class="check-area" aria-label="営業キャリア選択肢チェック">
+    <div class="check-card">
+      <div id="questionArea">
+        <div class="check-head">
+          <div class="step-line"><span>簡単1分</span><b id="stepNumber">1 / 6</b></div>
+          <div class="progress"><span id="progressBar" style="width:16.67%"></span></div>
+        </div>
+        <div class="question-block" id="questionBlock">
+          <p class="question-kicker" id="questionKicker">QUESTION 1</p>
+          <h2 id="questionTitle"></h2>
+          <p class="question-caption" id="questionCaption"></p>
+          <div class="option-grid" id="optionGrid"></div>
+          <button class="back-button" id="backButton" type="button" style="display:none">← 前の質問に戻る</button>
+        </div>
+      </div>
+
+      <div class="result-block" id="resultBlock">
+        <p class="result-label">ご回答ありがとうございました！⚓</p>
+        <h2>あなたの希望の環境が、<br><strong>明確になりましたね。</strong></h2>
+        <div class="answer-summary" id="answerSummary"></div>
+        <!-- 下記のhrefをSalesPortのLINE友だち追加URLへ変更してください -->
+        <a class="line-button" id="lineButton" href="#line-url"><span>LINEで</span> 募集中の会社を見てみる <i>›</i></a>
+        <small>無料・1分アンケート／転職時期が未定でも大丈夫です</small>
+        <button class="restart-button" id="restartButton" type="button">最初からやり直す</button>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>Bitters Club株式会社が運営しています</p>
+    <nav><a href="#">利用規約</a><a href="#">プライバシーポリシー</a><a href="#">お問い合わせ</a></nav>
+    <small>© SalesPort. All Rights Reserved.</small>
+  </footer>
+</main>
+
+<script>
+  const questions = [
+    {title:"今の営業で、一番変えたいことは？",caption:"直感に近いものを選んでください",options:["年収・評価","営業スタイル","働き方","まだ分からない"]},
+    {title:"どんな顧客との関わり方が理想ですか？",caption:"一番近いものを選んでください",options:["多くのお客様と接点を持つ","一社一社と深く向き合う","両方をバランスよく","相談して考えたい"]},
+    {title:"どんな営業活動が合いそうですか？",caption:"経験ではなく希望で大丈夫です",options:["新しい顧客を開拓する","既存顧客を支援する","問い合わせに対応する","まだ分からない"]},
+    {title:"どんな評価を大切にしたいですか？",caption:"今の気持ちに近いものを選んでください",options:["成果が明確に評価される","プロセスも評価される","安定して積み上げられる","相談しながら考えたい"]},
+    {title:"希望する働き方に近いものは？",caption:"現時点の希望で大丈夫です",options:["出社して働きたい","リモートも取り入れたい","時間の柔軟性を重視","特に決まっていない"]},
+    {title:"次のキャリアで優先したいことは？",caption:"一番近いものを選んでください",options:["収入を上げたい","成長できる環境","無理なく長く働きたい","自分に合う選択肢を知りたい"]}
+  ];
+  let step=0;
+  let answers=[];
+  const questionArea=document.getElementById("questionArea");
+  const questionBlock=document.getElementById("questionBlock");
+  const resultBlock=document.getElementById("resultBlock");
+  const title=document.getElementById("questionTitle");
+  const caption=document.getElementById("questionCaption");
+  const kicker=document.getElementById("questionKicker");
+  const grid=document.getElementById("optionGrid");
+  const stepNumber=document.getElementById("stepNumber");
+  const progressBar=document.getElementById("progressBar");
+  const backButton=document.getElementById("backButton");
+  const answerSummary=document.getElementById("answerSummary");
+
+  function renderQuestion(){
+    const q=questions[step];
+    kicker.textContent="QUESTION "+(step+1);
+    title.textContent=q.title;
+    caption.textContent=q.caption;
+    stepNumber.textContent=(step+1)+" / "+questions.length;
+    progressBar.style.width=((step+1)/questions.length*100)+"%";
+    backButton.style.display=step>0?"block":"none";
+    grid.innerHTML="";
+    q.options.forEach(option=>{
+      const button=document.createElement("button");
+      button.type="button";
+      button.innerHTML="<span>"+option+"</span><i>›</i>";
+      button.addEventListener("click",()=>selectAnswer(option));
+      grid.appendChild(button);
+    });
+    questionBlock.style.animation="none";
+    requestAnimationFrame(()=>{questionBlock.style.animation="appear .28s ease both"});
+  }
+  function selectAnswer(answer){
+    answers[step]=answer;
+    step++;
+    if(step<questions.length){renderQuestion()}else{showResult()}
+  }
+  function showResult(){
+    questionArea.style.display="none";
+    resultBlock.style.display="block";
+    answerSummary.innerHTML="";
+    answers.forEach(answer=>{
+      const span=document.createElement("span");
+      span.textContent=answer;
+      answerSummary.appendChild(span);
+    });
+  }
+  backButton.addEventListener("click",()=>{if(step>0){step--;renderQuestion()}});
+  document.getElementById("restartButton").addEventListener("click",()=>{
+    step=0;answers=[];resultBlock.style.display="none";questionArea.style.display="block";renderQuestion();
+  });
+  document.getElementById("lineButton").addEventListener("click",event=>{
+    if(event.currentTarget.getAttribute("href")==="#line-url"){
+      event.preventDefault();
+      alert("SalesPortのLINE友だち追加URLを設定してください。");
+    }
+  });
+  renderQuestion();
+</script>
+</body>
+</html>
