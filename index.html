@@ -61,6 +61,7 @@
   </section>
 
   <footer>
+    <p>Bitters Club株式会社が運営しています</p>
     <nav><a href="privacy.html">個人情報等の取扱い</a></nav>
     <small>© Bitters Club株式会社</small>
   </footer>
@@ -90,6 +91,8 @@
   let surveyStartedAt = "";
   let surveyCompletedAt = "";
   let diagnosisEventSent = false;
+  let diagnosisStartEventSent = false;
+  let gaAnsweredSteps = new Set();
   let ctaSending = false;
 
   const landingTime = new Date().toISOString();
@@ -132,6 +135,11 @@
   function trackMetaCustom(eventName, parameters){
     if(typeof window.fbq !== "function") return;
     window.fbq('trackCustom', eventName, parameters || {});
+  }
+
+  function trackGaEvent(eventName, parameters){
+    if(typeof window.gtag !== "function") return;
+    window.gtag('event', eventName, parameters || {});
   }
 
   function getOrCreateClickId(){
@@ -192,7 +200,19 @@
   }
 
   function selectAnswer(answer){
+    const questionNumber = step + 1;
     if(!surveyStartedAt) surveyStartedAt = new Date().toISOString();
+    if(!diagnosisStartEventSent){
+      diagnosisStartEventSent = true;
+      trackGaEvent("diagnosis_start", {question_count: questions.length});
+    }
+    if(!gaAnsweredSteps.has(questionNumber)){
+      gaAnsweredSteps.add(questionNumber);
+      trackGaEvent("diagnosis_answer", {
+        question_number: String(questionNumber),
+        answer_value: answer
+      });
+    }
     answers[step] = answer;
     step++;
     if(step < questions.length){
@@ -216,6 +236,7 @@
     if(!diagnosisEventSent){
       diagnosisEventSent = true;
       trackMetaCustom("SalesPortDiagnosisComplete", {question_count: questions.length});
+      trackGaEvent("diagnosis_complete", {question_count: questions.length});
     }
   }
 
@@ -272,6 +293,8 @@
     surveyStartedAt = "";
     surveyCompletedAt = "";
     diagnosisEventSent = false;
+    diagnosisStartEventSent = false;
+    gaAnsweredSteps = new Set();
     resultBlock.style.display = "none";
     questionArea.style.display = "block";
     renderQuestion();
@@ -283,6 +306,7 @@
     ctaSending = true;
 
     trackMetaCustom("SalesPortLineCtaClick", {cta_location:"diagnosis_result_cta"});
+    trackGaEvent("line_click", {cta_location:"diagnosis_result_cta"});
     sendCtaTouch(buildCtaPayload());
 
     /* keepalive送信を開始してからLINEへ遷移する。 */
